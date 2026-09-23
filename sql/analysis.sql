@@ -73,8 +73,13 @@ ORDER BY margin_pct ASC;
 
 -- Q6. Monthly trend --------------------------------------------------------------
 -- Is profit keeping up with sales growth?
+-- NOTE: "Order Date" is stored as M/D/YYYY text (e.g. 1/3/2015), which SQLite's
+-- strftime() cannot parse, so the month is derived with string functions.
+-- Import the CSV with Sales/Profit as REAL (see python/analysis.py cleaning).
 SELECT
-    strftime('%Y-%m', "Order Date")      AS month,
+    substr("Order Date", -4) || '-' ||
+        printf('%02d', CAST(substr("Order Date", 1, instr("Order Date", '/') - 1)
+                            AS INTEGER)) AS month,
     ROUND(SUM(Sales), 2)                 AS sales,
     ROUND(SUM(Profit), 2)                AS profit,
     ROUND(SUM(Profit) / SUM(Sales) * 100, 2) AS margin_pct
